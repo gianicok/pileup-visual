@@ -14,7 +14,7 @@ class _pulse:
         self.tau = tau 
 
     def func(self,t,dx):
-        f = ((self.volt/self.tau)*((t-dx)*(math.e**(-(t-dx)/self.tau))))
+        f = ((self.volt/self.tau)*((t-dx)*(math.exp(-(t-dx)/self.tau))))
         if f < 0: f = 0
         return f
     
@@ -34,20 +34,22 @@ class _pulse:
     
 # ----------------------------------------------------------------------------------------------------------
 
-def create_peaks(num): 
+def create_peaks(freq,x2): 
     volt = 12
-    tau = 1e-2
+    tau = 8 # this is in microseconds
     
     peaks = []
+    num = int((freq*1e6)/x2)
+
+    print("Simulating",num,"peaks at",num/x2,"MHz")
     for i in range(num):
         peaks.append(_pulse(volt,tau))
     return peaks
     
-def create_data(peaks):  
+def create_data(peaks,x2):  
     data = []
     res = 10000
-    x1 = 0
-    x2 = 1
+    x1 = 0     # this is in microseconds
     for peak in peaks:
         peak.generate(x1,x2,res,random.uniform(0,x2))
         data.append(peak.dataframe())
@@ -67,12 +69,12 @@ def plotter(peaks):
         peak = peak.df
         ax1.plot(peak['x'],peak['y'])
 
-    ax1.set_xlabel('Time (s)')
+    ax1.set_xlabel('Time (us)')
     ax1.set_ylabel('Output (Volts)')
     ax1.set_title('Individual Peaks')
 
     ax2.plot(pileup['x'], pileup['y'],color='red')
-    ax2.set_xlabel('Time (s)')
+    ax2.set_xlabel('Time (us)')
     ax2.set_ylabel('Output (Volts)')
     ax2.set_title('Sum-Peaks "Pulse-Pileup"')
 
@@ -81,8 +83,9 @@ def plotter(peaks):
 
 # ----------------------------------------------------------------------------------------------------------
 
-peaks = create_peaks(int(sys.argv[1]))
-data = create_data(peaks)
+#peaks = create_peaks(int(sys.argv[1]),1000)
+peaks = create_peaks(1,1000) #hardcode for now
+data = create_data(peaks,1000)
 pileup = create_pileup(data)
 
 plotter(peaks)

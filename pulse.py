@@ -1,6 +1,7 @@
 import sys
 import math
 import random
+import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -62,7 +63,17 @@ def create_pileup(data):
     pileup = pd.DataFrame({'x': peaks[0].df['x'], 'y': sum})
     return pileup
 
-def plotter(peaks):
+def savedata(data,pileup,frequency):
+    i = 0
+    saved = pd.DataFrame()
+    saved['Pileup'] = pileup['y']
+    for peak in data:
+        saved['Peak '+str(i)]=(peak.dataframe()['y'])
+        i=i+1
+    unix = int(datetime.datetime.timestamp(datetime.datetime.now()))
+    saved.to_csv('data_'+str(unix)+'_'+str(int(frequency/1000))+'kHz.csv', index=False)
+
+def plotter(peaks,pileup):
     '''fig, (ax1, ax2) = plt.subplots(2, 1)
 
     for peak in peaks:
@@ -91,16 +102,17 @@ def plotter(peaks):
     ax2.plot(pileup['x'], pileup['y'],color='red')
     ax2.set_ylabel('Pile-Up Voltage (V)')
 
-    
-
     plt.tight_layout()
     plt.show()
 
 # ----------------------------------------------------------------------------------------------------------
 
 # must be > 1 kHz
-peaks = create_peaks(int(sys.argv[1]),1000)
+frequency = int(sys.argv[1])
+
+peaks = create_peaks(frequency,1000)
 data = create_data(peaks,1000)
 pileup = create_pileup(data)
 
-plotter(peaks)
+savedata(peaks,pileup,frequency)
+plotter(peaks,pileup)
